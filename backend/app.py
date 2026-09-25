@@ -2,9 +2,13 @@ import os
 import json
 import joblib
 import numpy as np
-from flask import Flask, request, jsonify, make_response
+import pandas as pd
+from flask import Flask, request, jsonify, make_response, send_from_directory
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DIST_DIR = os.path.join(BASE_DIR, '..', 'frontend', 'dist')
+
+app = Flask(__name__, static_folder=DIST_DIR if os.path.exists(DIST_DIR) else None)
 
 @app.after_request
 def add_cors_headers(response):
@@ -13,7 +17,6 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
     return response
 
-BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, 'loan_model.joblib')
 SCALER_PATH = os.path.join(BASE_DIR, 'loan_scaler.joblib')
 META_PATH = os.path.join(BASE_DIR, 'model_metadata.json')
@@ -62,9 +65,10 @@ def encode_input(data):
     if f'LoanPurpose_{purp}' in row:
         row[f'LoanPurpose_{purp}'] = 1.0
 
-    feature_vector = [row[f] for f in feature_names]
-    return np.array([feature_vector]), row
+    df_row = pd.DataFrame([[row[f] for f in feature_names]], columns=feature_names)
+    return df_row, row
 
+# API Endpoints
 @app.route('/api/health', methods=['GET'])
 def health():
     return jsonify({
@@ -219,6 +223,21 @@ def predict():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Serve React static assets if built
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if os.path.exists(DIST_DIR):
+        if path != "" and os.path.exists(os.path.join(DIST_DIR, path)):
+            return send_from_directory(DIST_DIR, path)
+        elif os.path.exists(os.path.join(DIST_DIR, 'index.html')):
+            return send_from_directory(DIST_DIR, 'index.html')
+    return jsonify({
+        'status': 'online',
+        'message': 'Flask Loan Default ML API is running. Access endpoints under /api/'
+    }), 200
+
 if __name__ == '__main__':
-    print('Starting Flask ML backend on http://127.0.0.1:5000')
-    app.run(host='127.0.0.1', port=5000, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    print(f'Starting Flask ML backend on port {port}')
+    app.run(host='0.0.0.0', port=port, debug=False)

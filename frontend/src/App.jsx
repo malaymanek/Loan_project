@@ -8,7 +8,7 @@ import BatchSimulator from './components/BatchSimulator';
 import { predictInBrowser } from './utils/mlEngine';
 import confetti from 'canvas-confetti';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
 
 const DEFAULT_FORM_DATA = {
   Age: 32,
