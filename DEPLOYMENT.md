@@ -11,10 +11,10 @@ Render supports deploying the entire stack (Flask REST API + React Vite Frontend
 1. **Push your code to GitHub / GitLab**.
 2. Go to your [Render Dashboard](https://dashboard.render.com).
 3. Click **New +** and select **Blueprint**.
-4. Connect your GitHub repository.
+4. Connect your repository.
 5. Render will automatically detect `render.yaml` and provision:
    - **`loan-risk-ml-backend`** (Python Web Service with Gunicorn)
-   - **`loan-risk-frontend`** (Static Site with SPA rewrite rules)
+   - **`loan-risk-frontend`** (Static Site with Global CDN & SPA rewrite rules)
 6. Click **Apply**. Both services will build and deploy automatically!
 
 ---
@@ -27,14 +27,14 @@ If you prefer to configure each service manually via the Render dashboard:
 1. In Render Dashboard, click **New +** &rarr; **Web Service**.
 2. Connect your repository.
 3. Configure the following settings:
-   - **Name**: `loan-risk-backend`
+   - **Name**: `loan-risk-ml-backend`
    - **Root Directory**: `backend`
    - **Runtime**: `Python`
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT`
    - **Instance Type**: `Free`
 4. Click **Create Web Service**.
-5. Once deployed, copy your backend URL (e.g., `https://loan-risk-backend.onrender.com`).
+5. Once deployed, copy your backend URL (e.g., `https://loan-risk-ml-backend.onrender.com`).
 
 ---
 
@@ -47,7 +47,7 @@ If you prefer to configure each service manually via the Render dashboard:
    - **Build Command**: `npm install && npm run build`
    - **Publish Directory**: `dist`
 4. Add **Environment Variables**:
-   - `VITE_API_URL` = `https://loan-risk-backend.onrender.com/api` *(replace with your backend URL from Step A)*
+   - `VITE_API_URL` = `https://loan-risk-ml-backend.onrender.com/api` *(replace with your backend URL from Step A)*
 5. Under **Redirects/Rewrites**, add:
    - **Type**: `Rewrite`
    - **Source**: `/*`
